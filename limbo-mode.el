@@ -137,6 +137,8 @@
 
 (defvar limbo-mode-syntax-table
   (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\" "\"" st)
+    (modify-syntax-entry ?' "\"" st)
     (modify-syntax-entry ?# "< b" st)
     (modify-syntax-entry ?\n "> b" st)
     (modify-syntax-entry ?\[ "(]" st)
