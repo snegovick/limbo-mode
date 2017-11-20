@@ -29,33 +29,47 @@
           (looking-at-close-paren nil)
           (looking-at-start nil)
           (looking-at-regular-line nil)
+          (looking-at-comment-line nil)
+          (looking-at-empty-line nil)
+          (had-empty-line nil)
           (distance 0)
           cur-indent)
-      (save-excursion 
-        (if (looking-at "^[ \t]*{")
+      (save-excursion
+        (if (looking-at "^[ \t]*$")
             (progn
-              (message "looking at open paren")
-              (setq looking-at-open-paren t))
-          (if (looking-at "[ \t]*\\(=>\\|case\\|else\\|for\\|if\\|while\\).*[ \t]*{")
+              (message "looking at empty line")
+              (setq looking-at-empty-line t))
+          (if (looking-at "^[ \t]*#")
               (progn
-                (message "looking at keyword open paren")
-                (setq looking-at-keyword-open-paren t))
-            (if (looking-at "[ \t]*\\(=>\\|case\\|else\\|for\\|if\\|while\\)")
+                (message "looking at comment")
+                (setq looking-at-comment-line t))
+            (if (looking-at "^[ \t]*{")
                 (progn
-                  (message "looking at keyword")
-                  (setq looking-at-keyword t))
-              (if (looking-at "^[ \t]*}")
+                  (message "looking at open paren")
+                  (setq looking-at-open-paren t))
+              (if (looking-at "[ \t]*\\(=>\\|case\\|else\\|for\\|if\\|while\\).*[ \t]*{")
                   (progn
-                    (message "looking at close paren")
-                    (setq cur-indent (- (current-indentation) default-tab-width))
-                    (setq looking-at-close-paren t))
-                (if (bobp)
+                    (message "looking at keyword open paren")
+                    (setq looking-at-keyword-open-paren t))
+                (if (looking-at "[ \t]*\\(=>\\|case\\|else\\|for\\|if\\|while\\)")
                     (progn
-                      (message "looking at start")
-                      (setq looking-at-start t))
-                  (progn
-                    (message "looking at regular line")
-                    (setq looking-at-regular-line t)))
+                      (message "looking at keyword")
+                      (setq looking-at-keyword t))
+                  (if (looking-at "^[ \t]*}")
+                      (progn
+                        (message "looking at close paren")
+                        (setq cur-indent (- (current-indentation) default-tab-width))
+                        (setq looking-at-close-paren t))
+                    (if (bobp)
+                        (progn
+                          (message "looking at start")
+                          (setq looking-at-start t))
+                      (progn
+                        (message "looking at regular line")
+                        (setq looking-at-regular-line t))
+                      )
+                    )
+                  )
                 )
               )
             )
@@ -63,64 +77,85 @@
         (while not-indented
           (forward-line -1)
           (setq distance (+ distance 1))
-          (if (looking-at "[ \t]*\\(case\\|else\\|for\\|if\\|while\\).*[ \t]*{")
+          (if (looking-at "^[ \t]*$")
+              (progn (message "Has empty line")
+                     (setq had-empty-line t)))
+          (if (looking-at "^[ \t]*include")
               (progn
-                (message "in open paren keyword")
-                (if (equal looking-at-close-paren t)
-                    (progn 
-                      (setq cur-indent (current-indentation))
-                      (setq not-indented nil))
-                  (progn 
-                    (setq cur-indent (+ (current-indentation) default-tab-width))
-                    (setq not-indented nil))))
-            (if (looking-at "[ \t]*\\(case\\|else\\|for\\|if\\|while\\)")
-                (if (equal looking-at-open-paren t)
+                (message "found include")
+                (if (equal looking-at-empty-line t)
                     (progn
-                      (message "open paren in keyword")
-                      (setq cur-indent (current-indentation))
+                      (setq cur-indent 0)
                       (setq not-indented nil))
+                  (if (equal had-empty-line t)
+                      (progn
+                        (message "Had empty line, discard indent")
+                        (setq not-indented nil))
+                    (progn
+                      (setq cur-indent (+ (current-indentation) default-tab-width))
+                      (setq not-indented nil)))))
+            (if (looking-at "[ \t]*\\(case\\|else\\|for\\|if\\|while\\).*[ \t]*{")
+                (progn
+                  (message "in open paren keyword")
                   (if (equal looking-at-close-paren t)
                       (progn
-                        (message "close paren in keyword")
+                        (setq cur-indent (current-indentation))
+                        (setq not-indented nil))
+                    (progn
+                      (setq cur-indent (+ (current-indentation) default-tab-width))
+                      (setq not-indented nil))))
+              (if (looking-at "[ \t]*\\(case\\|else\\|for\\|if\\|while\\)")
+                  (if (equal looking-at-open-paren t)
+                      (progn
+                        (message "open paren in keyword")
+                        (setq cur-indent (current-indentation))
+                        (setq not-indented nil))
+                    (if (equal looking-at-close-paren t)
+                        (progn
+                          (message "close paren in keyword")
                                         ;(setq cur-indent (current-indentation))
                                         ;(setq cur-indent (- (current-indentation) default-tab-width))
                                         ;(setq not-indented nil)
-                        )
-                    (if (= distance 1)
-                        (progn
-                          (message "distance in keyword")
-                          (setq cur-indent (+ (current-indentation) default-tab-width))
-                          (setq not-indented nil))
-                      (progn
-                        (message "else in keyword")
-                        (setq cur-indent (current-indentation))
-                        (setq not-indented nil)))))
-              (if (looking-at ".*{.*}")
-                  ()
-                (if (looking-at ".*{")
-                    (progn
-                      (message "in open paren")
-                      (if (equal looking-at-close-paren t)
-                          (progn 
-                            (setq cur-indent (current-indentation))
+                          )
+                      (if (= distance 1)
+                          (progn
+                            (message "distance in keyword")
+                            (setq cur-indent (+ (current-indentation) default-tab-width))
                             (setq not-indented nil))
-                        (progn 
-                          (setq cur-indent (+ (current-indentation) default-tab-width))
-                          (setq not-indented nil))))
-                  (if (looking-at "^[ \t]*}")
-                      (progn
-                        (message "in close paren")
-                        (if (equal looking-at-close-paren t)
-                            (progn
-                              (setq cur-indent (- (current-indentation) default-tab-width))
-                              (setq not-indented nil))
-                          (progn 
-                              (setq cur-indent (current-indentation))
-                              (setq not-indented nil))))
-                    (if (bobp)
                         (progn
-                          (message "in start")                          
-                          (setq not-indented nil))
+                          (message "else in keyword")
+                          (setq cur-indent (current-indentation))
+                          (setq not-indented nil)))))
+                (if (looking-at ".*{.*}")
+                    ()
+                  (if (looking-at "^[ \t]*#")
+                      ()
+                    (if (looking-at ".*{")
+                        (progn
+                          (message "in open paren")
+                          (if (equal looking-at-close-paren t)
+                              (progn
+                                (setq cur-indent (current-indentation))
+                                (setq not-indented nil))
+                            (progn
+                              (setq cur-indent (+ (current-indentation) default-tab-width))
+                              (setq not-indented nil))))
+                      (if (looking-at "^[ \t]*}")
+                          (progn
+                            (message "in close paren")
+                            (if (equal looking-at-close-paren t)
+                                (progn
+                                  (setq cur-indent (- (current-indentation) default-tab-width))
+                                  (setq not-indented nil))
+                              (progn
+                                (setq cur-indent (current-indentation))
+                                (setq not-indented nil))))
+                        (if (bobp)
+                            (progn
+                              (message "in start")
+                              (setq not-indented nil))
+                          )
+                        )
                       )
                     )
                   )
@@ -161,7 +196,10 @@
   (set (make-local-variable 'indent-line-function) 'limbo-indent-line)
   (setq major-mode 'limbo-mode)
   (setq mode-name "Limbo")
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
   (run-hooks 'limbo-mode-hook)
   )
 
 (provide 'limbo-mode)
+
