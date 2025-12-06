@@ -14,6 +14,7 @@
    '("\\<\\(a\\(?:dt\\|rray\\)\\|byte\\|int\\|list\\|string\\)\\>" . font-lock-type-face)
    '("^[ \t]*\\([a-zA-Z]+[[:alnum:]]*\\)(.*)[^;]" (1 'font-lock-function-name-face))
    '("\\('\\w*'\\)" . font-lock-variable-name-face)
+   '(" *include\\(?:_next\\)?\\s-+\\(\".*\"\\)\\)" . (1 font-lock-string-face))
    )
   )
 
@@ -58,7 +59,7 @@
                   (if (looking-at "^[ \t]*}")
                       (progn
                         (message "looking at close paren")
-                        (setq cur-indent (- (current-indentation) default-tab-width))
+                        (setq cur-indent (- (current-indentation) tab-width))
                         (setq looking-at-close-paren t))
                     (if (bobp)
                         (progn
@@ -92,7 +93,7 @@
                         (message "Had empty line, discard indent")
                         (setq not-indented nil))
                     (progn
-                      (setq cur-indent (+ (current-indentation) default-tab-width))
+                      (setq cur-indent (+ (current-indentation) tab-width))
                       (setq not-indented nil)))))
             (if (looking-at "[ \t]*\\(case\\|else\\|for\\|if\\|while\\).*[ \t]*{")
                 (progn
@@ -102,7 +103,7 @@
                         (setq cur-indent (current-indentation))
                         (setq not-indented nil))
                     (progn
-                      (setq cur-indent (+ (current-indentation) default-tab-width))
+                      (setq cur-indent (+ (current-indentation) tab-width))
                       (setq not-indented nil))))
               (if (looking-at "[ \t]*\\(case\\|else\\|for\\|if\\|while\\)")
                   (if (equal looking-at-open-paren t)
@@ -114,13 +115,13 @@
                         (progn
                           (message "close paren in keyword")
                                         ;(setq cur-indent (current-indentation))
-                                        ;(setq cur-indent (- (current-indentation) default-tab-width))
+                                        ;(setq cur-indent (- (current-indentation) tab-width))
                                         ;(setq not-indented nil)
                           )
                       (if (= distance 1)
                           (progn
                             (message "distance in keyword")
-                            (setq cur-indent (+ (current-indentation) default-tab-width))
+                            (setq cur-indent (+ (current-indentation) tab-width))
                             (setq not-indented nil))
                         (progn
                           (message "else in keyword")
@@ -138,14 +139,14 @@
                                 (setq cur-indent (current-indentation))
                                 (setq not-indented nil))
                             (progn
-                              (setq cur-indent (+ (current-indentation) default-tab-width))
+                              (setq cur-indent (+ (current-indentation) tab-width))
                               (setq not-indented nil))))
                       (if (looking-at "^[ \t]*}")
                           (progn
                             (message "in close paren")
                             (if (equal looking-at-close-paren t)
                                 (progn
-                                  (setq cur-indent (- (current-indentation) default-tab-width))
+                                  (setq cur-indent (- (current-indentation) tab-width))
                                   (setq not-indented nil))
                               (progn
                                 (setq cur-indent (current-indentation))
@@ -185,21 +186,15 @@
     st)
   "Syntax table for limbo-mode")
 
-
-(defun limbo-mode ()
-  "Major mode for editing Limbo sources"
-  (interactive)
-  (kill-all-local-variables)
-  (set-syntax-table limbo-mode-syntax-table)
-  (use-local-map limbo-mode-map)
-  (set (make-local-variable 'font-lock-defaults) '(limbo-font-lock-keywords))
-  (set (make-local-variable 'indent-line-function) 'limbo-indent-line)
-  (setq major-mode 'limbo-mode)
-  (setq mode-name "Limbo")
+(define-derived-mode limbo-mode prog-mode "Limbo mode"
+  "Major mode for editing limbo files."
+  :syntax-table limbo-mode-syntax-table
+  (setq-local font-lock-defaults '(limbo-font-lock-keywords))
+  (setq-local indent-line-function 'limbo-indent-line)
   (setq-local comment-start "# ")
   (setq-local comment-end "")
-  (run-hooks 'limbo-mode-hook)
   )
+
 
 (provide 'limbo-mode)
 
