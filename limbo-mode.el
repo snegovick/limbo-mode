@@ -12,7 +12,7 @@
   (list
    '("\\<\\(=>\\|c\\(?:ase\\|on\\)\\|else\\|for\\|i\\(?:f\\|mp\\(?:\\(?:lemen\\|or\\)t\\)\\|nclude\\)\\|nil\\|re\\(?:f\\|turn\\)\\|while\\)\\>" . font-lock-keyword-face)
    '("\\<\\(a\\(?:dt\\|rray\\)\\|byte\\|int\\|list\\|string\\)\\>" . font-lock-type-face)
-   '("^[ \t]*\\([a-zA-Z]+[[:alnum:]]*\\)(.*)[^;]" (1 'font-lock-function-name-face))
+   '("^[ \t]*\\([a-zA-Z\\_]+[a-zA-Z0-9\\_]*\\)(.*)[^;]" (1 'font-lock-function-name-face))
    '("\\('\\w*'\\)" . font-lock-variable-name-face)
    '(" *include\\(?:_next\\)?\\s-+\\(\".*\"\\)\\)" . (1 font-lock-string-face))
    )
